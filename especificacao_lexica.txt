@@ -1,0 +1,144 @@
+• Expressões aritméticas e seus operadores.
+
+Token: Aritmetica:
+((Nreal + Nint)('+' + '-' + '*' + '/' + '%')(Nreal + Nint))⁺
+
+Regex: ((\d+\.\d+|\d)([+\-*/%])(\d+\.\d+|\d))+
+------------------------------------------------------------------------
+
+• Declarações de variáveis considerando os tipos inteiro, real e lógico;
+
+Token: Variavel:
+$(letra+digito+_)(letra+digito+_)⁺
+
+Regex: ^\$[a-zA-Z0-9_][a-zA-Z0-9_]*
+
+------------------------------------------------------------------------
+
+• Comandos leitura e escrita;
+
+Token: Escrita:
+echo("(letra+digito+caracteres_especiais)^*")
+printf("(letra+digito+caracteres_especiais)^*")
+
+Regex:
+    ^echo\("([^"]*)"\)$         # ^" indica qualquer caractere exceto aspas
+    ^printf\("([^"]*)"\)$
+
+
+Token: Leitura:
+fgets(STDIN)
+readline("((letra+digito+caracteres_especiais)^*)")
+
+Regex:
+    ^fgets\(STDIN\)$
+    ^readline\("([^"]*)"\)$
+
+
+------------------------------------------------------------------------
+
+• Comandos de atribuição;
+
+Token: Nreal:
+digito⁺.digito⁺
+
+Regex:
+    ^[0-9]+\.[0-9]+$
+
+Token: Nint:
+digito⁺
+
+Regex:
+    ^[0-9]+$
+
+Token: Nstring:
+"(letra+digito+caracteres_especiais)^*"
+
+Regex:
+    ^"[^"]*"$
+
+Token: Atribuicao:
+(Variavel = (Nreal + Nint + Nstring + Aritmetica)) + 
+(Variavel += (Nreal + Nint + Nstring + Aritmetica)) + 
+(Variavel -= (Nreal + Nint + Nstring + Aritmetica)) +
+(Variavel *= (Nreal + Nint + Aritmetica)) +
+(Variavel /= (Nreal + Nint + Aritmetica))
+
+Regex:
+    ^Variavel=(Nreal|Nint|Nstring|Aritmetica)$
+    ^Variavel([+-]?=)(Nreal|Nint|Nstring|Aritmetica)$
+    ^Variavel(([*/])?=)(Nreal|Nint|Aritmetica)$
+
+------------------------------------------------------------------------
+
+• Comando condicional;
+
+Token: Igual:
+Variavel == (Variavel)
+
+Regex:
+    Variavel==Variavel
+
+Token: Maior:
+Variavel > Variavel
+
+Regex:
+
+Token: MaiorOuIgual:
+Variavel >= Variavel
+
+Regex:
+
+Token: Menor:
+Variavel < Variavel
+
+Regex:
+
+Token: MenorOuIgual:
+Variavel <= Variavel
+
+Regex:
+
+Token: Diferente:
+Variavel != Variavel
+
+Regex:
+
+Token: True:
+True
+
+Regex:
+
+Token: False:
+False
+
+Regex:
+
+Token: CondicaoE:
+(Igual + Maior + MaiorOuIgual + Menor + MenorOuIgual + Diferente + True + False) &&
+(Igual + Maior + MaiorOuIgual + Menor + MenorOuIgual + Diferente + True + False)
+
+Token: CondicaoOU:
+(Igual + Maior + MaiorOuIgual + Menor + MenorOuIgual + Diferente + True + False) ||
+(Igual + Maior + MaiorOuIgual + Menor + MenorOuIgual + Diferente + True + False)
+
+Token: EstruturaIF:
+if (Igual + Maior + MaiorOuIgual + Menor + MenorOuIgual + Diferente + True + False){
+
+} 
++
+if ((CondicaoE + CondicaoOU)⁺){
+
+}
+
+Token: EstruturaELSEIF:
+EstruturaIFelseEstruturaIF
+
+Token: EstruturaELSE:
+(EstruturaIF + EstruturaELSEIF)else{
+
+}
+
+------------------------------------------------------------------------
+
+• Estruturas de Repetição
