@@ -1,7 +1,19 @@
 <?php
-$a = 1;
-$b = 2;
+$nome = "João";
+$idade = 25;
+$altura = 1.75;
 
-$c = $a+$b;
+if ($idade >= 18) {
+    echo "{$nome} é maior de idade\n";
+} else {
+    echo "{$nome} é menor de idade\n";
+}
 
-echo "$c";
+for ($i = 0; $i < 10; $i++) {
+    print "Contagem: $i\n";
+}
+
+function soma($a, $b) {
+    return $a + $b;
+}
+?>
