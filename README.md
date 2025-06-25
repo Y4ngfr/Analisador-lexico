@@ -1,3 +1,10 @@
-# Analisador-lexico
+# Como executar
+## Windows
+```
+py ./main.py "path_relativo_do_arquivo_teste.php"
+```
 
-https://github.com/Y4ngfr/Analisador-lexico/
+## Linux
+```
+python3 ./main.py "path_relativo_do_arquivo_teste.php"
+```
