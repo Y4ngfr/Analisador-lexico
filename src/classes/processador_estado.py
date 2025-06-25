@@ -101,16 +101,21 @@ class ProcessadorEstado:
         self.lexema = lexama
 
     def processar_estado_tag(self, char):
-        if char == '?' and self.lexema == '<':
+        if char == '?':
             self.lexema += char
-
-            self.lexema += self.codigo[self.posicao + 1] if self.posicao + 1 < len(self.codigo) else ''
-            if self.lexema == '<?php':
+            # Verifica se os próximos caracteres formam "php"
+            if self.posicao + 3 < len(self.codigo) and self.codigo[self.posicao+1:self.posicao+4] == 'php':
+                self.lexema += 'php'
+                self.posicao += 3
                 self.adicionar_token('TAG_ABERTURA', self.lexema)
                 self.manipular_estado(Estado.INICIAL, "")
-            elif self.lexema == '<?':
-                self.adicionar_token( 'TAG_ABERTURA', self.lexema)
+            else:
+                self.adicionar_token('TAG_ABERTURA', self.lexema)
                 self.manipular_estado(Estado.INICIAL, "")
+        else:
+            self.adicionar_token('MENOR', '<')
+            self.retornar_posicao()
+            self.manipular_estado(Estado.INICIAL, "")
 
     def processar_estado_identificador(self, char):
         if char.isalpha() or char.isdigit() or char == '_':
@@ -208,7 +213,12 @@ class ProcessadorEstado:
     def processar_estado_menor(self, char):
         if char == '?':
             self.lexema += char
-            self.adicionar_token('TAG_ABERTURA', self.lexema)
+            if self.posicao + 3 < len(self.codigo) and self.codigo[self.posicao+1:self.posicao+4] == 'php':
+                self.lexema += 'php'
+                self.posicao += 3
+                self.adicionar_token('TAG_ABERTURA', self.lexema)
+            else:
+                self.adicionar_token('TAG_ABERTURA', self.lexema)
         elif char == '=':
             self.lexema += char
             self.adicionar_token('OPERADOR_COMPARACAO', self.lexema)
@@ -221,12 +231,7 @@ class ProcessadorEstado:
     def processar_estado_igual(self, char):
         if char == '=':
             self.lexema += char
-            if self.posicao + 1 < len(self.codigo) and self.codigo[self.posicao + 1] == '=':
-                self.lexema += '='
-                self.avancar_posicao()
-                self.adicionar_token('OPERADOR_COMPARACAO', self.lexema)
-            else:
-                self.adicionar_token('OPERADOR_COMPARACAO', self.lexema)
+            self.adicionar_token('OPERADOR_COMPARACAO', self.lexema)
         else:
             self.adicionar_token('ATRIBUICAO', self.lexema)
             self.retornar_posicao()
@@ -313,7 +318,6 @@ class ProcessadorEstado:
 
     def finalizar_lexema(self):
         if self.lexema:
-            # Tenta identificar o token pendente
             if self.estado_atual == Estado.IDENTIFICADOR:
                 self.processar_estado_identificador('')
             elif self.estado_atual == Estado.NUMERO:
@@ -328,8 +332,7 @@ class ProcessadorEstado:
                 self.adicionar_token('VARIAVEL', self.lexema)
             else:
                 self.erros.append(f"Sequência inesperada '{self.lexema}' na linha {self.linha_atual}")
-
-            self.manipular_estado(Estado.INICIAL, lexama="")
+            self.manipular_estado(Estado.INICIAL, "")
 
     def get_posicao(self):
         return self.posicao
@@ -345,4 +348,6 @@ class ProcessadorEstado:
 
     def adicionar_token(self, tipo, valor):
         self.tokens.append(Token(tipo, valor, self.linha_atual))
+        self.lexema = ""
+        self.estado_atual = Estado.INICIAL
 
