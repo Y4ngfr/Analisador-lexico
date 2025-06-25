@@ -20,5 +20,3 @@ class Estado(enum.Enum):
     MAIS = 16
     MENOS = 17
     BARRA = 18
-    PONTO = 19
-    FINAL = 20
