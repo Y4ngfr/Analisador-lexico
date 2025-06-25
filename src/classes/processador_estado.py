@@ -145,7 +145,8 @@ class ProcessadorEstado:
         if char.isdigit():
             self.lexema += char
         elif char == '.':
-            self.manipular_estado(Estado.NUMERO_REAL, char)
+            self.lexema += char
+            self.manipular_estado(Estado.NUMERO_REAL, self.lexema)
         else:
             self.adicionar_token('NUMERO_INTEIRO', self.lexema)
 
@@ -179,7 +180,8 @@ class ProcessadorEstado:
 
     def processar_estado_variavel(self, char):
         if char.isalpha() or char == '_':
-            self.manipular_estado(Estado.IDENTIFICADOR, char)
+            self.lexema += char
+            self.manipular_estado(Estado.IDENTIFICADOR, self.lexema)
         else:
             self.adicionar_token('VARIAVEL', self.lexema)
 
@@ -201,8 +203,7 @@ class ProcessadorEstado:
         else:
             self.adicionar_token('MAIOR', self.lexema)
             self.retornar_posicao()
-        self.estado_atual = Estado.INICIAL
-        self.lexema = ""
+        self.manipular_estado(Estado.INICIAL, "")
 
     def processar_estado_menor(self, char):
         if char == '?':
@@ -214,8 +215,8 @@ class ProcessadorEstado:
         else:
             self.adicionar_token('MENOR', self.lexema)
             self.retornar_posicao()
-        self.estado_atual = Estado.INICIAL
-        self.lexema = ""
+        self.manipular_estado(Estado.INICIAL, "")
+
 
     def processar_estado_igual(self, char):
         if char == '=':
@@ -229,8 +230,7 @@ class ProcessadorEstado:
         else:
             self.adicionar_token('ATRIBUICAO', self.lexema)
             self.retornar_posicao()
-        self.estado_atual = Estado.INICIAL
-        self.lexema = ""
+        self.manipular_estado(Estado.INICIAL, "")
 
     def processar_estado_exclamacao(self, char):
         if char == '=':
@@ -243,8 +243,7 @@ class ProcessadorEstado:
                 self.adicionar_token('OPERADOR_COMPARACAO', self.lexema)
         else:
             self.erros.append(f"Operador inesperado '{self.lexema}' na linha {self.linha_atual}")
-        self.estado_atual = Estado.INICIAL
-        self.lexema = ""
+        self.manipular_estado(Estado.INICIAL, "")
 
     def processar_estado_and(self, char):
         if char == '&':
@@ -252,8 +251,7 @@ class ProcessadorEstado:
             self.adicionar_token('OPERADOR_LOGICO', self.lexema)
         else:
             self.erros.append(f"Operador inesperado '{self.lexema}' na linha {self.linha_atual}")
-        self.estado_atual = Estado.INICIAL
-        self.lexema = ""
+        self.manipular_estado(Estado.INICIAL, "")
 
     def processar_estado_or(self, char):
         if char == '|':
@@ -261,8 +259,7 @@ class ProcessadorEstado:
             self.adicionar_token('OPERADOR_LOGICO', self.lexema)
         else:
             self.erros.append(f"Operador inesperado '{self.lexema}' na linha {self.linha_atual}")
-        self.estado_atual = Estado.INICIAL
-        self.lexema = ""
+        self.manipular_estado(Estado.INICIAL, "")
 
     def processar_estado_mais(self, char):
         if char == '+':
@@ -274,8 +271,7 @@ class ProcessadorEstado:
         else:
             self.adicionar_token('OPERADOR_ARITMETICO', self.lexema)
             self.retornar_posicao()
-        self.estado_atual = Estado.INICIAL
-        self.lexema = ""
+        self.manipular_estado(Estado.INICIAL, "")
 
     def processar_estado_menos(self, char):
         if char == '-':
@@ -287,14 +283,11 @@ class ProcessadorEstado:
         else:
             self.adicionar_token('OPERADOR_ARITMETICO', self.lexema)
             self.retornar_posicao()
-        self.estado_atual = Estado.INICIAL
-        self.lexema = ""
+        self.manipular_estado(Estado.INICIAL, "")
 
     def processar_estado_barra(self, char):
         if char == '/':
-            # Comentário de linha
-            self.estado_atual = Estado.COMENTARIO_LINHA
-            self.lexema = ""
+            self.manipular_estado(Estado.COMENTARIO_LINHA, "")
         elif char == '*':
             # Comentário de bloco (não implementado completamente)
             pass
@@ -304,18 +297,16 @@ class ProcessadorEstado:
         else:
             self.adicionar_token('OPERADOR_ARITMETICO', self.lexema)
             self.retornar_posicao()
-        self.estado_atual = Estado.INICIAL
-        self.lexema = ""
+        self.manipular_estado(Estado.INICIAL, "")
 
     def processar_estado_ponto(self, char):
         if char.isdigit():
             self.lexema += char
-            self.estado_atual = Estado.NUMERO_REAL
+            self.manipular_estado(Estado.NUMERO_REAL, self.lexema)
         else:
             self.adicionar_token('OPERADOR_CONCATENACAO', self.lexema)
             self.retornar_posicao()
-            self.estado_atual = Estado.INICIAL
-            self.lexema = ""
+            self.manipular_estado(Estado.INICIAL, "")
 
     def processar_estado_final(self):
         pass
