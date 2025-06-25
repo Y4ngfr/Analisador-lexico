@@ -1,5 +1,5 @@
-from src.enums.estado import Estado
-from src.classes.token import Token
+from enums.estado import Estado
+from classes.token import Token
 
 class ProcessadorEstado:
     def __init__(self, estado_inicial, codigo):
@@ -29,8 +29,6 @@ class ProcessadorEstado:
             self.processar_estado_string_simples(char)
         elif self.estado_atual == Estado.VARIAVEL:
             self.processar_estado_variavel(char)
-        elif self.estado_atual == Estado.OPERADOR:
-            self.processar_estado_operador(char)
         elif self.estado_atual == Estado.COMENTARIO_LINHA:
             self.processar_estado_comentario_linha(char)
         elif self.estado_atual == Estado.MAIOR:
@@ -51,16 +49,14 @@ class ProcessadorEstado:
             self.processar_estado_menos(char)
         elif self.estado_atual == Estado.BARRA:
             self.processar_estado_barra(char)
-        elif self.estado_atual == Estado.PONTO:
-            self.processar_estado_ponto(char)
-        elif self.estado_atual == Estado.FINAL:
-            self.processar_estado_final(char)
 
     def processar_estado_inicial(self, char):
         if char == '<':
             self.manipular_estado(Estado.MENOR, char)
         elif char == '>':
             self.manipular_estado(Estado.MAIOR, char)
+        elif char == '?':
+            self.manipular_estado(Estado.TAG, char)
         elif char == '=':
             self.manipular_estado(Estado.IGUAL, char)
         elif char == '!':
@@ -75,8 +71,6 @@ class ProcessadorEstado:
             self.manipular_estado(Estado.MENOS, char)
         elif char == '/':
             self.manipular_estado(Estado.BARRA, char)
-        elif char == '.':
-            self.manipular_estado(Estado.ESTADO_PONTO, char)
         elif char == '"':
             self.manipular_estado(Estado.STRING_DUPLA, char)
         elif char == "'":
@@ -101,21 +95,12 @@ class ProcessadorEstado:
         self.lexema = lexama
 
     def processar_estado_tag(self, char):
-        if char == '?':
+        if char == '>':
             self.lexema += char
-            # Verifica se os próximos caracteres formam "php"
-            if self.posicao + 3 < len(self.codigo) and self.codigo[self.posicao+1:self.posicao+4] == 'php':
-                self.lexema += 'php'
-                self.posicao += 3
-                self.adicionar_token('TAG_ABERTURA', self.lexema)
-                self.manipular_estado(Estado.INICIAL, "")
-            else:
-                self.adicionar_token('TAG_ABERTURA', self.lexema)
-                self.manipular_estado(Estado.INICIAL, "")
-        else:
-            self.adicionar_token('MENOR', '<')
-            self.retornar_posicao()
+            self.adicionar_token('TAG_FECHAMENTO', self.lexema)
             self.manipular_estado(Estado.INICIAL, "")
+        else:
+            self.erros.append(f"Operador inesperado '{self.lexema}' na linha {self.linha_atual}")
 
     def processar_estado_identificador(self, char):
         if char.isalpha() or char.isdigit() or char == '_':
@@ -123,26 +108,25 @@ class ProcessadorEstado:
             return
 
         palavras_chave = {
-                    'if': 'PALAVRA_CHAVE',
-                    'else': 'PALAVRA_CHAVE',
-                    'elseif': 'PALAVRA_CHAVE',
-                    'while': 'PALAVRA_CHAVE',
-                    'for': 'PALAVRA_CHAVE',
-                    'foreach': 'PALAVRA_CHAVE',
-                    'function': 'PALAVRA_CHAVE',
-                    'return': 'PALAVRA_CHAVE',
-                    'break': 'PALAVRA_CHAVE',
-                    'continue': 'PALAVRA_CHAVE',
-                    'echo': 'PALAVRA_CHAVE',
-                    'print': 'PALAVRA_CHAVE',
-                    'true': 'VALOR_ESPECIAL',
-                    'false': 'VALOR_ESPECIAL',
-                    'null': 'VALOR_ESPECIAL'
+            'if': 'PALAVRA_CHAVE',
+            'else': 'PALAVRA_CHAVE',
+            'elseif': 'PALAVRA_CHAVE',
+            'while': 'PALAVRA_CHAVE',
+            'for': 'PALAVRA_CHAVE',
+            'foreach': 'PALAVRA_CHAVE',
+            'function': 'PALAVRA_CHAVE',
+            'return': 'PALAVRA_CHAVE',
+            'break': 'PALAVRA_CHAVE',
+            'continue': 'PALAVRA_CHAVE',
+            'echo': 'PALAVRA_CHAVE',
+            'print': 'PALAVRA_CHAVE',
+            'true': 'VALOR_ESPECIAL',
+            'false': 'VALOR_ESPECIAL',
+            'null': 'VALOR_ESPECIAL'
         }
 
         tipo = palavras_chave.get(self.lexema, 'IDENTIFICADOR')
         self.adicionar_token(tipo, self.lexema)
-
         self.retornar_posicao()
         self.manipular_estado(Estado.INICIAL, "")
 
@@ -154,7 +138,6 @@ class ProcessadorEstado:
             self.manipular_estado(Estado.NUMERO_REAL, self.lexema)
         else:
             self.adicionar_token('NUMERO_INTEIRO', self.lexema)
-
             self.retornar_posicao()
             self.manipular_estado(Estado.INICIAL, "")
 
@@ -163,7 +146,6 @@ class ProcessadorEstado:
             self.lexema += char
             return
 
-
         self.retornar_posicao()
         self.adicionar_token('NUMERO_REAL', self.lexema)
         self.manipular_estado(Estado.INICIAL, "")
@@ -171,31 +153,22 @@ class ProcessadorEstado:
     def processar_estado_string_dupla(self, char):
         self.lexema += char
         if char == '"' and self.lexema[0] == '"' and len(self.lexema) > 1:
-            if self.lexema[-2] != '\\':
-                self.adicionar_token('STRING_DUPLA', self.lexema)
-                self.manipular_estado(Estado.INICIAL, "")
+            self.adicionar_token('STRING_DUPLA', self.lexema)
+            self.manipular_estado(Estado.INICIAL, "")
 
     def processar_estado_string_simples(self, char):
         self.lexema += char
         if char == "'" and self.lexema[0] == "'" and len(self.lexema) > 1:
-            # Verifica se não é uma escape sequence
-            if self.lexema[-2] != '\\':
-                self.adicionar_token('STRING_SIMPLES', self.lexema)
-                self.manipular_estado(Estado.INICIAL, "")
-
-    def processar_estado_variavel(self, char):
-        if char.isalpha() or char == '_':
-            self.lexema += char
-            self.manipular_estado(Estado.IDENTIFICADOR, self.lexema)
-        else:
-            self.adicionar_token('VARIAVEL', self.lexema)
-
-            self.retornar_posicao()
+            self.adicionar_token('STRING_SIMPLES', self.lexema)
             self.manipular_estado(Estado.INICIAL, "")
 
-    def processar_estado_operador(self, char):
-        # Operadores simples já foram tratados no estado inicial
-        return
+    def processar_estado_variavel(self, char):
+        if char.isalpha() or char.isdigit() or char == '_':
+            self.lexema += char
+        else:
+            self.adicionar_token('VARIAVEL', self.lexema)
+            self.retornar_posicao()
+            self.manipular_estado(Estado.INICIAL, "")
 
     def processar_estado_comentario_linha(self, char):
         if char == '\n':
@@ -227,7 +200,6 @@ class ProcessadorEstado:
             self.retornar_posicao()
         self.manipular_estado(Estado.INICIAL, "")
 
-
     def processar_estado_igual(self, char):
         if char == '=':
             self.lexema += char
@@ -242,7 +214,6 @@ class ProcessadorEstado:
             self.lexema += char
             if self.posicao + 1 < len(self.codigo) and self.codigo[self.posicao + 1] == '=':
                 self.lexema += '='
-                self.avancar_posicao()
                 self.adicionar_token('OPERADOR_COMPARACAO', self.lexema)
             else:
                 self.adicionar_token('OPERADOR_COMPARACAO', self.lexema)
@@ -293,9 +264,6 @@ class ProcessadorEstado:
     def processar_estado_barra(self, char):
         if char == '/':
             self.manipular_estado(Estado.COMENTARIO_LINHA, "")
-        elif char == '*':
-            # Comentário de bloco (não implementado completamente)
-            pass
         elif char == '=':
             self.lexema += char
             self.adicionar_token('OPERADOR_ATRIBUICAO_COMBINADA', self.lexema)
@@ -303,18 +271,6 @@ class ProcessadorEstado:
             self.adicionar_token('OPERADOR_ARITMETICO', self.lexema)
             self.retornar_posicao()
         self.manipular_estado(Estado.INICIAL, "")
-
-    def processar_estado_ponto(self, char):
-        if char.isdigit():
-            self.lexema += char
-            self.manipular_estado(Estado.NUMERO_REAL, self.lexema)
-        else:
-            self.adicionar_token('OPERADOR_CONCATENACAO', self.lexema)
-            self.retornar_posicao()
-            self.manipular_estado(Estado.INICIAL, "")
-
-    def processar_estado_final(self):
-        pass
 
     def finalizar_lexema(self):
         if self.lexema:
@@ -349,5 +305,3 @@ class ProcessadorEstado:
     def adicionar_token(self, tipo, valor):
         self.tokens.append(Token(tipo, valor, self.linha_atual))
         self.lexema = ""
-        self.estado_atual = Estado.INICIAL
-

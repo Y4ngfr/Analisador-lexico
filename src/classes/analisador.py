@@ -1,11 +1,10 @@
 import sys
-from src.enums.estado import Estado
-from src.classes.processador_estado import ProcessadorEstado
+from enums.estado import Estado
+from classes.processador_estado import ProcessadorEstado
 
 class AFDLexico:
     def __init__(self, codigo):
         self.codigo = codigo
-
         self.processador_estado = ProcessadorEstado(Estado.INICIAL, self.codigo)
 
     def analisar(self):
@@ -23,8 +22,6 @@ class AFDLexico:
         
         # Processa qualquer lexema pendente no final do arquivo
         self.processador_estado.finalizar_lexema()
-
-    
 
 
 def le_token(analisador):
