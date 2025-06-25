@@ -1,11 +1,11 @@
 import os
 import sys
 
-from src.classes.analisador import AFDLexico
-from src.classes.analisador import le_token
+from classes.analisador import AFDLexico
+from classes.analisador import le_token
 
 if __name__ == "__main__":
-    nome_arquivo = sys.argv[1] if len(sys.argv) > 1 else "./codigo_teste/exemplo.php"
+    nome_arquivo = sys.argv[1]
     try:
         codigo = ''
         with open(nome_arquivo, 'r') as file:
