@@ -138,7 +138,3 @@ Token: EstruturaELSE:
 (EstruturaIF + EstruturaELSEIF)else{
 
 }
-
-------------------------------------------------------------------------
-
-• Estruturas de Repetição
